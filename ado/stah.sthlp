@@ -73,7 +73,7 @@ is the group with the smallest {it:groupvar} value.
 {pstd}Harvard University{p_end}
 {pstd}exing at college.harvard.edu{p_end}
 
-{pstd}Lu Tian Uno{p_end}
+{pstd}Lu Tian{p_end}
 {pstd}Stanford University{p_end}
 {pstd}lutian at stanford.edu{p_end}
 
