@@ -1,0 +1,7 @@
+v 1.0.0
+d stah: Stata command for comparing average hazard
+d Authors: Emily Xing, Lu Tian and Hajime Uno
+d License: MIT
+
+f ado/stah.ado
+f ado/stah.sthlp
