@@ -62,9 +62,9 @@ stset year, failure(event)
 // Two-sample analysis (treatment comparison)
 stah trt_num, tau(5) reference(2)
 ```
-This runs AH comparison up to τ = 5 years using the trt_num variable.
 
-More examples are provided in `example/example-stah.do`.
+This runs AH comparison up to τ = 5 years using the trt_num variable. More examples are provided in `example/example-stah.do`.
+
 ---
 
 ## **License**
