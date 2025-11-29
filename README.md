@@ -1,5 +1,7 @@
 # **stah — Survival analysis using average hazard with survival weight in Stata**
 
+[![DOI](https://zenodo.org/badge/1106078435.svg)](https://doi.org/10.5281/zenodo.17756397)
+
 **Authors:** Emily Xing, Lu Tian, and Hajime Uno
 
 **License:** MIT License
