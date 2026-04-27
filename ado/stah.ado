@@ -1,5 +1,5 @@
 /* stah.ado - Complete Average Hazard (AH) analysis
-   Version 1.0
+   Version 1.1.0
 
    Computes the Average Hazard with Survival Weight (AHSW), a summary measure that 
    quantifies the rate of event occurrence over a restricted time period [0, tau].
@@ -29,22 +29,24 @@ program stah, rclass byable(recall)
         quietly count if `touse'
         di " "
         di as input "Number of observations for analysis = " r(N)
+        if "`tau'"!="" di as input "Truncation time (tau) = " %10.3f `tau'
         stah_single_arm, touse(`touse') tau(`tau') level(`level')
         return add
     }
     else {
         syntax varlist(max=1 numeric) [if] [in], ///
-            [tau(numlist > 0 max=1 miss) level(cilevel) reference(numlist >= 0 max=1) strata(varlist max=1 numeric)]
+            [tau(numlist > 0 max=1 miss) level(cilevel) reference(numlist >= 0 max=1) strata(varlist max=1 numeric) weights(numlist > 0)]
         marksample touse
         local completevars _t _d `varlist' `strata'
         markout `touse' `completevars'
         quietly count if `touse'
         di " "
         di as input "Number of observations for analysis = " r(N)
+        if "`tau'"!="" di as input "Truncation time (tau) = " %10.3f `tau'
 
         if "`strata'"!="" {
             stah_two_sample_stratified `varlist', touse(`touse') tau(`tau') level(`level') ///
-                reference(`reference') strata(`strata')
+                reference(`reference') strata(`strata') weights(`weights')
             return add
         }
         else {
@@ -95,10 +97,6 @@ program stah_single_arm, rclass
             local defaulttau = r(p75)
         }
         global tau = `defaulttau'
-        di as input "The truncation time: tau = " %9.3f $tau " was specified (default)."
-    }
-    else {
-        di as input "The truncation time: tau = $tau was specified."
     }
 
     // validate tau in used subset
@@ -134,21 +132,24 @@ program stah_single_arm, rclass
     di _n as gr "Single-arm Average Hazard (AH)"
     di as gr "Truncation time (tau): " %7.3f $tau
     di _n as gr "Number of observations:"
-    di as gr "{hline 12}{c TT}{hline 62}"
-    di as gr "        " _col(13) "{c |}" _col(16) "Total N" _col(26) "Event by tau" _col(40) "Censor by tau" _col(54) "At risk at tau"
-    di as gr "{hline 12}{c +}{hline 62}"
-    di as gr %8s "Single arm" _col(12) " {c |}" as ye ///
-        _col(18) %5.0f `total_n' _col(30) %5.0f `events_by_tau' _col(44) %5.0f `censored_by_tau' _col(58) %5.0f `at_risk_at_tau'
-    di as gr "{hline 12}{c BT}{hline 62}"
+    di as gr "{hline 12}{c TT}{hline 52}"
+    di as gr "            " _col(13) "{c |}" ///
+        _col(17) "Total N" _col(27) "Events" _col(37) "Censored" _col(49) "At risk"
+    di as gr "{hline 12}{c +}{hline 52}"
+    di as gr %10s "Single arm" _col(13) "{c |}" as ye ///
+        _col(21) %3.0f `total_n' _col(30) %3.0f `events_by_tau' ///
+        _col(42) %3.0f `censored_by_tau' _col(53) %3.0f `at_risk_at_tau'
+    di as gr "{hline 12}{c BT}{hline 52}"
 
     di _n as gr "Average Hazard:"
-    di as gr "{hline 70}"
-    di as gr "AH(tau)" _col(15) "{c |}" _col(20) "Estimate" _col(32) "Std. Err." _col(44) "[$level% Conf. Interval]"
-    di as gr "{hline 14}{c +}{hline 55}"
+    di as gr "{hline 68}"
+    di as gr "AH(tau)" _col(15) "{c |}" ///
+        _col(20) "Estimate" _col(31) "Std. Err." _col(44) "[$level% Conf. Interval]"
+    di as gr "{hline 14}{c +}{hline 53}"
     di as gr %12s "AH($tau)" _col(15) "{c |}" as ye ///
-        _col(20) %8.3f el(ah_results,1,1) _col(32) %8.3f el(ah_results,1,2) ///
-        _col(44) %8.3f el(ah_results,1,3) _col(55) %8.3f el(ah_results,1,4)
-    di as gr "{hline 70}"
+        _col(20) %8.3f el(ah_results,1,1) _col(31) %8.3f el(ah_results,1,2) ///
+        _col(44) %8.3f el(ah_results,1,3) _col(53) %8.3f el(ah_results,1,4)
+    di as gr "{hline 68}"
 
     // returns
     return matrix results   = ah_results
@@ -263,33 +264,50 @@ program stah_two_sample, rclass
 
     // display
     di _n as gr "Number of observations:"
-    di as gr "{hline 12}{c TT}{hline 62}"
-    di as gr "        " _col(13) "{c |}" _col(16) "Total N" _col(26) "Event by tau" _col(40) "Censor by tau" _col(54) "At risk at tau"
-    di as gr "{hline 12}{c +}{hline 62}"
-    di as gr %8s "arm$reference" _col(12) " {c |}" as ye ///
-        _col(18) %5.0f `total_n_ref' _col(30) %5.0f `events_ref' _col(44) %5.0f `censored_ref' _col(58) %5.0f `atrisk_ref'
-    di as gr %8s "arm$treatment" _col(12) " {c |}" as ye ///
-        _col(18) %5.0f `total_n_trt' _col(30) %5.0f `events_trt' _col(44) %5.0f `censored_trt' _col(58) %5.0f `atrisk_trt'
-    di as gr "{hline 12}{c BT}{hline 62}"
+    di as gr "{hline 12}{c TT}{hline 52}"
+    di as gr "            " _col(13) "{c |}" ///
+        _col(17) "Total N" _col(27) "Events" _col(37) "Censored" _col(49) "At risk"
+    di as gr "{hline 12}{c +}{hline 52}"
+    di as gr %10s "arm$reference" _col(13) "{c |}" as ye ///
+        _col(21) %3.0f `total_n_ref' _col(30) %3.0f `events_ref' ///
+        _col(42) %3.0f `censored_ref' _col(53) %3.0f `atrisk_ref'
+    di as gr %10s "arm$treatment" _col(13) "{c |}" as ye ///
+        _col(21) %3.0f `total_n_trt' _col(30) %3.0f `events_trt' ///
+        _col(42) %3.0f `censored_trt' _col(53) %3.0f `atrisk_trt'
+    di as gr "{hline 12}{c BT}{hline 52}"
 
     di _n as gr "Average Hazard (AH) by arm:"
-    di as gr "{hline 12}{c TT}{hline 40}"
-    di as gr "        " _col(13) "{c |}" _col(16) "Est." _col(26) "Lower $level%" _col(38) "Upper $level%"
-    di as gr "{hline 12}{c +}{hline 40}"
-    di as gr %8s "AH (arm $reference)" _col(12) " {c |}" as ye ///
-        _col(16) %8.3f el(ah_ref,1,1) _col(26) %8.3f el(ah_ref,1,3) _col(38) %8.3f el(ah_ref,1,4)
-    di as gr %8s "AH (arm $treatment)" _col(12) " {c |}" as ye ///
-        _col(16) %8.3f el(ah_trt,1,1) _col(26) %8.3f el(ah_trt,1,3) _col(38) %8.3f el(ah_trt,1,4)
-    di as gr "{hline 12}{c BT}{hline 40}"
+    di as gr "{hline 12}{c TT}{hline 52}"
+    di as gr "            " _col(13) "{c |}" ///
+        _col(17) "Estimate" _col(28) "Std. Err." _col(40) "Lower $level%" _col(52) "Upper $level%"
+    di as gr "{hline 12}{c +}{hline 52}"
+    di as gr %10s "arm$reference" _col(13) "{c |}" as ye ///
+        _col(17) %8.3f el(ah_ref,1,1) ///
+        _col(28) %9.3f el(ah_ref,1,2) ///
+        _col(40) %9.3f el(ah_ref,1,3) ///
+        _col(52) %9.3f el(ah_ref,1,4)
+    di as gr %10s "arm$treatment" _col(13) "{c |}" as ye ///
+        _col(17) %8.3f el(ah_trt,1,1) ///
+        _col(28) %9.3f el(ah_trt,1,2) ///
+        _col(40) %9.3f el(ah_trt,1,3) ///
+        _col(52) %9.3f el(ah_trt,1,4)
+    di as gr "{hline 12}{c BT}{hline 52}"
 
     di _n as gr "Between-group contrast:"
     di as gr "{hline 20}{c TT}{hline 44}"
-    di as gr "     Contrast" _col(21) "{c |}" _col(24) "Est." _col(34) "Lower $level%" _col(46) "Upper $level%" _col(58) "P>|z|"
+    di as gr "     Contrast" _col(21) "{c |}" ///
+        _col(24) "Estimate" _col(35) "Lower $level%" _col(47) "Upper $level%" _col(57) "P>|z|"
     di as gr "{hline 20}{c +}{hline 44}"
     di as gr %18s "DAH ($treatment - $reference)" _col(20) " {c |}" as ye ///
-        _col(24) %8.3f el(unadj_results,1,1) _col(34) %8.3f el(unadj_results,1,2) _col(46) %8.3f el(unadj_results,1,3) _col(58) %8.3f el(unadj_results,1,4)
+        _col(24) %8.3f el(unadj_results,1,1) ///
+        _col(35) %9.3f el(unadj_results,1,2) ///
+        _col(47) %9.3f el(unadj_results,1,3) ///
+        _col(57) %5.3f el(unadj_results,1,4)
     di as gr %18s "RAH ($treatment / $reference)" _col(20) " {c |}" as ye ///
-        _col(24) %8.3f el(unadj_results,2,1) _col(34) %8.3f el(unadj_results,2,2) _col(46) %8.3f el(unadj_results,2,3) _col(58) %8.3f el(unadj_results,2,4)
+        _col(24) %8.3f el(unadj_results,2,1) ///
+        _col(35) %9.3f el(unadj_results,2,2) ///
+        _col(47) %9.3f el(unadj_results,2,3) ///
+        _col(57) %5.3f el(unadj_results,2,4)
     di as gr "{hline 20}{c BT}{hline 44}"
 
     // returns
@@ -309,7 +327,7 @@ end
 program stah_two_sample_stratified, rclass
     version 13
     syntax varlist(max=1 numeric), touse(string) [tau(numlist > 0 max=1 miss) level(cilevel) ///
-                                   reference(numlist >= 0 max=1)] strata(varlist max=1 numeric)
+                                   reference(numlist >= 0 max=1) weights(numlist > 0)] strata(varlist max=1 numeric)
 
     global arm = "`varlist'"
     global level = `level'
@@ -337,6 +355,32 @@ program stah_two_sample_stratified, rclass
     // unique strata values
     quietly tab $strata if `touse', matrow(__SV)
     local n_strata = rowsof(__SV)
+
+    // validate and process weights (if provided)
+    local weight_count = 0
+    if "`weights'"!="" {
+        local weight_count : word count `weights'
+        if `weight_count' != `n_strata' {
+            di as err "Error: number of weights (`weight_count') must match number of strata (`n_strata')"
+            exit 198
+        }
+        * normalize weights
+        local weight_sum = 0
+        foreach w in `weights' {
+            local weight_sum = `weight_sum' + `w'
+        }
+        local wt_list ""
+        foreach w in `weights' {
+            local wt_norm = `w' / `weight_sum'
+            local wt_list "`wt_list' `wt_norm'"
+        }
+        di _n as input "Note: Custom stratum weights provided (normalized):"
+        forvalues s = 1/`n_strata' {
+            local g = el(__SV,`s',1)
+            local w_norm : word `s' of `wt_list'
+            di as input "  Stratum `g': weight = " %7.4f `w_norm'
+        }
+    }
 
     // storage matrices
     tempname F0 R0 F1 R1 N0 N1 NN
@@ -367,7 +411,7 @@ program stah_two_sample_stratified, rclass
     // Display overall sample counts by strata
     di _n as gr "Number of observations:"
     di as gr "{hline 12}{c TT}{hline 30}"
-    di as gr "        " _col(13) "{c |}" _col(16) "total" _col(24) "arm$reference" _col(32) "arm$treatment"
+    di as gr "        " _col(13) "{c |}" _col(16) "total" _col(25) "arm$reference" _col(33) "arm$treatment"
     di as gr "{hline 12}{c +}{hline 30}"
     forvalues s = 1/`n_strata' {
         local g = el(__SV,`s',1)
@@ -397,9 +441,18 @@ program stah_two_sample_stratified, rclass
     quietly count if $time > $tau & `touse' & $arm==$treatment
     local atrisk_trt = r(N)
 
-    di _n as gr "        Total N Event by tau Censor by tau At risk at tau"
-    di as gr "arm$reference" %8.0f `total_n0' %11.0f `events_ref' %12.0f `censored_ref' %13.0f `atrisk_ref'
-    di as gr "arm$treatment" %8.0f `total_n1' %11.0f `events_trt' %12.0f `censored_trt' %13.0f `atrisk_trt'
+    di _n as gr "Number of observations by arm:"
+    di as gr "{hline 12}{c TT}{hline 52}"
+    di as gr "            " _col(13) "{c |}" ///
+        _col(17) "Total N" _col(27) "Events" _col(37) "Censored" _col(49) "At risk"
+    di as gr "{hline 12}{c +}{hline 52}"
+    di as gr %10s "arm$reference" _col(13) "{c |}" as ye ///
+        _col(21) %3.0f `total_n0' _col(30) %3.0f `events_ref' ///
+        _col(42) %3.0f `censored_ref' _col(53) %3.0f `atrisk_ref'
+    di as gr %10s "arm$treatment" _col(13) "{c |}" as ye ///
+        _col(21) %3.0f `total_n1' _col(30) %3.0f `events_trt' ///
+        _col(42) %3.0f `censored_trt' _col(53) %3.0f `atrisk_trt'
+    di as gr "{hline 12}{c BT}{hline 52}"
 
     // ---------- PASS 1: per-stratum components ----------
     forvalues s = 1/`n_strata' {
@@ -523,7 +576,13 @@ restore
     scalar __F1bar = 0
     scalar __R1bar = 0
     forvalues s = 1/`n_strata' {
-        scalar __wt = el(`NN',`s',1) / __Ntot
+        if "`weights'"!="" {
+            local w_use : word `s' of `wt_list'
+            scalar __wt = `w_use'
+        }
+        else {
+            scalar __wt = el(`NN',`s',1) / __Ntot
+        }
         scalar __F0bar = __F0bar + __wt * el(`F0',`s',1)
         scalar __R0bar = __R0bar + __wt * el(`R0',`s',1)
         scalar __F1bar = __F1bar + __wt * el(`F1',`s',1)
@@ -542,7 +601,13 @@ restore
 
     forvalues s = 1/`n_strata' {
         local g   = el(__SV,`s',1)
-        scalar __wt = el(`NN',`s',1) / __Ntot
+        if "`weights'"!="" {
+            local w_use : word `s' of `wt_list'
+            scalar __wt = `w_use'
+        }
+        else {
+            scalar __wt = el(`NN',`s',1) / __Ntot
+        }
 
         local n0s = el(`N0',`s',1)
         local n1s = el(`N1',`s',1)
@@ -667,14 +732,19 @@ restore
 
     di _n as gr "<Adjusted analysis> Average Hazard (AH) by arm:"
     di as gr "{hline 12}{c TT}{hline 52}"
-    di as gr "        " _col(13) "{c |}" _col(16) "Est." _col(26) "Std. Err." _col(38) "Lower $level%" _col(52) "Upper $level%"
+    di as gr "            " _col(13) "{c |}" ///
+        _col(17) "Estimate" _col(28) "Std. Err." _col(40) "Lower $level%" _col(52) "Upper $level%"
     di as gr "{hline 12}{c +}{hline 52}"
-    di as gr %8s "AH (arm$reference)"  _col(12) " {c |}" as ye ///
-        _col(16) %8.3f el(stratified_ahsw,1,1) _col(26) %8.3f el(stratified_ahsw,1,2) ///
-        _col(38) %8.3f el(stratified_ahsw,1,3) _col(52) %8.3f el(stratified_ahsw,1,4)
-    di as gr %8s "AH (arm$treatment)" _col(12) " {c |}" as ye ///
-        _col(16) %8.3f el(stratified_ahsw,2,1) _col(26) %8.3f el(stratified_ahsw,2,2) ///
-        _col(38) %8.3f el(stratified_ahsw,2,3) _col(52) %8.3f el(stratified_ahsw,2,4)
+    di as gr %10s "arm$reference" _col(13) "{c |}" as ye ///
+        _col(17) %8.3f el(stratified_ahsw,1,1) ///
+        _col(28) %9.3f el(stratified_ahsw,1,2) ///
+        _col(40) %9.3f el(stratified_ahsw,1,3) ///
+        _col(52) %9.3f el(stratified_ahsw,1,4)
+    di as gr %10s "arm$treatment" _col(13) "{c |}" as ye ///
+        _col(17) %8.3f el(stratified_ahsw,2,1) ///
+        _col(28) %9.3f el(stratified_ahsw,2,2) ///
+        _col(40) %9.3f el(stratified_ahsw,2,3) ///
+        _col(52) %9.3f el(stratified_ahsw,2,4)
     di as gr "{hline 12}{c BT}{hline 52}"
 
 
@@ -682,18 +752,18 @@ restore
     di _n in gr "Between-group contrast:"
     di in smcl in gr "{hline 20}{c TT}{hline 44}"
     di in smcl in gr " Contrast" _col(21) "{c |}" ///
-                     _col(24) "Est." _col(34) "Lower $level%" _col(46) "Upper $level%" _col(58) "P>|z|"
+                     _col(24) "Estimate" _col(35) "Lower $level%" _col(47) "Upper $level%" _col(57) "P>|z|"
     di in smcl in gr "{hline 20}{c +}{hline 44}"
     di in smcl in gr %18s "DAH ($treatment - $reference)" _col(20) " {c |}" in ye ///
          _col(24) %8.3f el(stratified_results_ds,1,1) ///
-         _col(34) %8.3f el(stratified_results_ds,1,2) ///
-         _col(46) %8.3f el(stratified_results_ds,1,3) ///
-         _col(58) %8.3f el(stratified_results_ds,1,4)
+         _col(35) %9.3f el(stratified_results_ds,1,2) ///
+         _col(47) %9.3f el(stratified_results_ds,1,3) ///
+         _col(57) %5.3f el(stratified_results_ds,1,4)
     di in smcl in gr %18s "RAH ($treatment / $reference)" _col(20) " {c |}" in ye ///
          _col(24) %8.3f el(stratified_results_ds,2,1) ///
-         _col(34) %8.3f el(stratified_results_ds,2,2) ///
-         _col(46) %8.3f el(stratified_results_ds,2,3) ///
-         _col(58) %8.3f el(stratified_results_ds,2,4)
+         _col(35) %9.3f el(stratified_results_ds,2,2) ///
+         _col(47) %9.3f el(stratified_results_ds,2,3) ///
+         _col(57) %5.3f el(stratified_results_ds,2,4)
     di in smcl in gr "{hline 20}{c BT}{hline 44}"
 
     // returns

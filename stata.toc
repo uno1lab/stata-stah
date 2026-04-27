@@ -1,1 +1,1 @@
-p stah
+p stah Average hazard with survival weight
