@@ -16,7 +16,7 @@
 {cmd:stah}
 [{it:groupvar}]
 {ifin}
-[{cmd:,} {opt tau(#)} {opt strata(varname)} {opt level(#)} {opt reference(#)}]
+[{cmd:,} {opt tau(#)} {opt strata(varname)} {opt weights(numlist)} {opt level(#)} {opt reference(#)}]
 
 
 {title:Description}
@@ -41,10 +41,12 @@ data using the {cmd:stset} command.
 calculation. Tau must be less than or equal to the largest observed time (either event or censor) in each treatment group. 
 The default value is the minimum of the largest observed event time across all treatment groups.
 
-{phang}{opt strata(varname)} Performs stratified analysis using the specified stratification
-variable. The variable takes integer values representing different strata. When specified, {cmd:stah} conducts direct standardization
-with proportional stratum weights proportional to observed stratum sizes; otherwise, the default is proportional to the stratum size
-in the input data. 
+{phang}{opt strata(varname)} Performs stratified analysis using a single stratification
+variable. The variable should take integer values representing different strata. When specified, {cmd:stah} conducts direct standardization
+with stratum weights (proportional to stratum sample size by default, or custom weights if specified via {opt weights()}).
+
+{phang}{opt weights(numlist)} Specifies custom weights for direct standardization in stratified analyses, only applies when {opt strata()} is also specified. 
+The number of weights should equal the number of strata, and do not need to sum to 1 (they will be normalized internally). 
 
 {phang}{opt level(#)} set confidence level; the default is level(95).
 
@@ -63,6 +65,8 @@ is the group with the smallest {it:groupvar} value.
 {p 8 14 2}{cmd:. stah treatment, tau(5) reference(2)} 
 
 {p 8 14 2}{cmd:. stah treatment, tau(5)  reference(2) strata(bili_strata)}
+
+{p 8 14 2}{cmd:. stah treatment, tau(5)  reference(2) strata(bili_strata) weights(0.3 0.7)}
 
 {p 8 14 2}{cmd:. stah treatment, tau(10) strata(stage) level(90)}
 

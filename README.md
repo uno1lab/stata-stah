@@ -11,7 +11,7 @@
 ## **Overview**
 
 `stah` is a Stata command for performing **Average Hazard with Survival Weight (AH)** analysis, a robust and interpretable alternative to hazard‐ratio–based survival comparisons.
-It implements AH-based methods for (a) one-sample estimation and (b) two-sample comparisons (unstratified and stratified). 
+It implements AH-based methods for (a) one-sample estimation and (b) two-sample comparisons (unstratified and stratified). For stratified two-sample analyses, direct standardization uses stratum-size weights by default and supports user-supplied weights via the `weights()` option.
 
 This repository includes:
 
@@ -47,21 +47,21 @@ help stah
 clear all
 import delimited "pbc_data.csv", clear
 
-* rescale time from day to year
-gen year = time/365.25
+* rescale time from days to years
+gen years = time/365.25
 
-* Create event variable (use "2" only)
-gen event = (status == 2)
+* Create event variable (death = status 2)
+gen byte event = (status == 2)
 
 * Convert string treatment to numeric
 gen trt_num = .
 replace trt_num = 1 if trt == "1"
 replace trt_num = 2 if trt == "2"
 
-// Set survival data
-stset year, failure(event)
+* Set survival data
+stset years, failure(event)
 
-// Two-sample analysis (treatment comparison)
+* Two-sample analysis (treatment comparison)
 stah trt_num, tau(5) reference(2)
 ```
 
