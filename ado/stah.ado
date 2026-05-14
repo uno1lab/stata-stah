@@ -1,5 +1,5 @@
 /* stah.ado - Complete Average Hazard (AH) analysis
-   Version 1.1.0
+   Version 1.1.1
 
    Computes the Average Hazard with Survival Weight (AHSW), a summary measure that 
    quantifies the rate of event occurrence over a restricted time period [0, tau].
@@ -113,8 +113,6 @@ program stah_single_arm, rclass
         local ah_est     = r(ah_est)
         local ah_se      = r(ah_se)
         local ah_var     = r(ah_var)
-        local rmst_val   = r(rmst)
-        local cuminc_val = r(cum_inc_tau)
         matrix ah_results = r(ah_output)
     restore
 
@@ -156,9 +154,6 @@ program stah_single_arm, rclass
     return scalar ah        = `ah_est'
     return scalar ah_se     = `ah_se'
     return scalar ah_var    = `ah_var'
-    return scalar rmst      = `rmst_val'
-    return scalar cum_inc   = `cuminc_val'
-    return scalar surv_tau  = 1-`cuminc_val'
     return scalar tau       = $tau
     return scalar n_total   = `total_n'
     return scalar n_events  = `events_by_tau'
@@ -767,11 +762,10 @@ restore
     di in smcl in gr "{hline 20}{c BT}{hline 44}"
 
     // returns
-    return matrix stratified_results    = stratified_results_ivw
-    return matrix stratified_ahsw = stratified_ahsw
-    return matrix stratified_results_ds = stratified_results_ds
-    return matrix strata_ah_reference   = strata_ah_ref
-    return matrix strata_ah_treatment   = strata_ah_trt
+    return matrix stratified_results  = stratified_results_ds
+    return matrix stratified_ahsw     = stratified_ahsw
+    return matrix strata_ah_reference = strata_ah_ref
+    return matrix strata_ah_treatment = strata_ah_trt
     return scalar tau        = $tau
     return scalar reference  = $reference
     return scalar treatment  = $treatment

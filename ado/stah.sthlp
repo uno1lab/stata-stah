@@ -1,5 +1,5 @@
 {smcl}
-{* 26November2025}{...}
+{* 14May2026}{...}
 {cmd:help stah} 
 {hline}
 
@@ -69,6 +69,49 @@ is the group with the smallest {it:groupvar} value.
 {p 8 14 2}{cmd:. stah treatment, tau(5)  reference(2) strata(bili_strata) weights(0.3 0.7)}
 
 {p 8 14 2}{cmd:. stah treatment, tau(10) strata(stage) level(90)}
+
+
+{title:Stored results}
+
+{pstd}{cmd:stah} stores the following in {cmd:r()}. The set of returned items depends on the analysis type.{p_end}
+
+{pstd}{ul:Scalars (all analyses)}{p_end}
+{synoptset 28 tabbed}{...}
+{synopt:{cmd:r(tau)}}truncation time used in the analysis{p_end}
+
+{pstd}{ul:Scalars (two-sample analyses)}{p_end}
+{synopt:{cmd:r(reference)}}value of the reference group{p_end}
+{synopt:{cmd:r(treatment)}}value of the treatment group{p_end}
+
+{pstd}{ul:Scalars (stratified analysis)}{p_end}
+{synopt:{cmd:r(n_strata)}}number of strata{p_end}
+
+{pstd}{ul:Scalars (single-arm analysis)}{p_end}
+{synopt:{cmd:r(ah)}}AH point estimate{p_end}
+{synopt:{cmd:r(ah_se)}}AH standard error{p_end}
+{synopt:{cmd:r(ah_var)}}AH variance{p_end}
+{synopt:{cmd:r(n_total)}}total sample size{p_end}
+{synopt:{cmd:r(n_events)}}number of events by tau{p_end}
+{synopt:{cmd:r(n_censored)}}number censored by tau{p_end}
+{synopt:{cmd:r(n_atrisk)}}number at risk at tau{p_end}
+
+{pstd}{ul:Macros}{p_end}
+{synopt:{cmd:r(analysis_type)}}{cmd:single_arm}, {cmd:two_sample}, or {cmd:two_sample_stratified}{p_end}
+{synopt:{cmd:r(strata_var)}}stratification variable name (stratified analysis){p_end}
+
+{pstd}{ul:Matrices (single-arm analysis)}{p_end}
+{synopt:{cmd:r(results)}}AH estimate, standard error, and confidence interval{p_end}
+
+{pstd}{ul:Matrices (two-sample, unstratified)}{p_end}
+{synopt:{cmd:r(ah_reference)}}AH estimate, SE, and CI for the reference arm{p_end}
+{synopt:{cmd:r(ah_treatment)}}AH estimate, SE, and CI for the treatment arm{p_end}
+{synopt:{cmd:r(unadjusted_results)}}DAH and RAH with CIs and p-values{p_end}
+
+{pstd}{ul:Matrices (two-sample, stratified)}{p_end}
+{synopt:{cmd:r(strata_ah_reference)}}per-stratum AH estimates with CIs for the reference arm{p_end}
+{synopt:{cmd:r(strata_ah_treatment)}}per-stratum AH estimates with CIs for the treatment arm{p_end}
+{synopt:{cmd:r(stratified_ahsw)}}standardized AH by arm with CIs{p_end}
+{synopt:{cmd:r(stratified_results)}}DAH and RAH based on direct standardization{p_end}
 
 
 {title:Authors}

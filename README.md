@@ -69,6 +69,25 @@ This runs AH comparison up to τ = 5 years using the trt_num variable. More exam
 
 ---
 
+## **Changelog**
+
+### v1.1.1 (2026-05-14)
+
+In response to Stata Journal editorial queries on the submitted manuscript:
+
+- **Single-arm.** Removed redundant returns `r(rmst)`, `r(cum_inc)`, and `r(surv_tau)`. The point estimate, SE, variance, and the 1×4 matrix `r(results)` remain available.
+- **Stratified two-sample.** Removed the inverse-variance-weighted contrast matrix; the direct-standardization contrast, previously `r(stratified_results_ds)`, is now stored as `r(stratified_results)`.
+- **Help file.** Added a new **Stored results** section documenting all `r()` items by analysis type; updated the date stamp.
+
+Estimates, standard errors, and confidence intervals are unchanged.
+
+### v1.1.0
+
+- Added `weights()` option for user-supplied stratum weights (auto-normalized) in direct standardization for stratified two-sample analyses.
+- Reformatted output tables; confidence-interval column labels now respect the `level()` option.
+
+---
+
 ## **License**
 
 This software is released under the **MIT License**.
